@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "Doki Theme",
+  "version": "1.0.0",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "dt@sasha0552.org"
+    }
+  },
+
+  "chrome_settings_overrides": {
+    "homepage": "html/tab.html"
+  },
+
+  "chrome_url_overrides": {
+    "newtab": "html/tab.html"
+  },
+
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start",
+
+      "css": [
+        "css/scrollbar.css",
+        "css/selection.css"
+      ],
+
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+
+  "icons": {
+    "16": "images/doki-theme-logo@16.png",
+    "32": "images/doki-theme-logo@32.png",
+    "64": "images/doki-theme-logo@64.png"
+  }
+}

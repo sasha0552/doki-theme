@@ -1,0 +1,8 @@
+:root {
+  caret-color: &accentColor& !important; 
+}
+
+::selection {
+  color: &selectionForeground& !important;
+  background-color: &selectionBackground& !important;
+}

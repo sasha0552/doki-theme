@@ -1,0 +1,11 @@
+[submodule "upstream/doki-theme-assets"]
+  path = upstream/doki-theme-assets
+  url = https://github.com/doki-theme/doki-theme-assets.git
+
+[submodule "upstream/doki-theme-master"]
+  path = upstream/doki-theme-master
+  url = https://github.com/doki-theme/doki-master-theme.git
+
+[submodule "upstream/doki-theme-web"]
+  path = upstream/doki-theme-web
+  url = https://github.com/doki-theme/doki-theme-web.git

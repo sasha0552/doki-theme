@@ -1,0 +1,16 @@
+html,
+body {
+  margin: 0;
+  background-color: &baseBackground&;
+  width: 100%;
+  height: 100%;
+}
+
+#background {
+  color: rgb(187, 187, 187);
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: right center;
+  background-image: url("/images/backgrounds/&_themeName&.png");
+}
