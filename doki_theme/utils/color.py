@@ -1,3 +1,5 @@
+from colorsys import rgb_to_hls
+
 def css_to_rgb(color: str) -> (int, int, int):
   """
     Convert a CSS hexadecimal color code to RGB values.
@@ -25,8 +27,32 @@ def css_to_rgb(color: str) -> (int, int, int):
   # Apply a mask to get the blue value
   blue = color_int & 0x0000FF  
 
-  # Returning the RGB values as a tuple
+  # Return the RGB values as a tuple
   return (red, green, blue)
+
+def css_to_hsl(color: str) -> (float, float, float):
+  """
+    Convert a CSS hexadecimal color code to HSL values.
+
+    Args:
+    - color (str): A string representing a CSS hexadecimal color code.
+
+    Returns:
+    - tuple: A tuple containing the HSL values (hue, saturation, lightness) converted from the input color.
+
+    Example:
+    >>> css_to_hsl("#FFA500")
+    (255, 1, 0)
+  """
+
+  # Convert CSS to RGB first
+  (r, g, b) = css_to_rgb(value)
+
+  # Convert to hue, lightness, and saturation
+  (h, l, s) = rgb_to_hls(r / 255, g / 255, b / 255); 
+
+  # Return the HLS values as a tuple
+  return (h, 1, l)
 
 def shade_css_color(color: str, percent: float) -> str:
   """

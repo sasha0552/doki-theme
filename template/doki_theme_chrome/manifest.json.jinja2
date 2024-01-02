@@ -11,22 +11,22 @@
 
   "theme": {
     "colors": {
-      "bookmark_text": {{ rgb_array(manifest.colors.foregroundColor) }},
-      "button_background": {{ rgb_array(manifest.colors.buttonColor) }},
-      "frame": {{ rgb_array(manifest.colors.baseBackground) }},
-      "frame_inactive": {{ rgb_array(manifest.colors.textEditorBackground) }},
-      "frame_incognito": {{ rgb_array(manifest.colors.textEditorBackground) }},
-      "frame_incognito_inactive": {{ rgb_array(manifest.colors.baseBackground) }},
-      "ntp_background": {{ rgb_array(manifest.colors.baseBackground) }},
-      "ntp_header": {{ rgb_array(manifest.colors.textEditorBackground) }},
-      "ntp_text": {{ rgb_array(manifest.colors.foregroundColor) }},
-      "omnibox_background": {{ rgb_array(manifest.colors.secondaryBackground) }},
-      "omnibox_text": {{ rgb_array(manifest.colors.accentColor) }},
-      "tab_background_text": {{ rgb_array(manifest.colors.foregroundColor) }},
-      "tab_background_text_inactive": {{ rgb_array(manifest.colors.lineNumberColor) }},
-      "tab_text": {{ rgb_array(manifest.colors.foregroundColor) }},
-      "theme_toolbar": {{ rgb_array(manifest.colors.highlightColor) }},
-      "toolbar": {{ rgb_array(manifest.colors.textEditorBackground) }}
+      "bookmark_text": {{ json.dumps(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "button_background": {{ json.dumps(css_to_rgb(manifest.colors.buttonColor)) }},
+      "frame": {{ json.dumps(css_to_rgb(manifest.colors.baseBackground)) }},
+      "frame_inactive": {{ json.dumps(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "frame_incognito": {{ json.dumps(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "frame_incognito_inactive": {{ json.dumps(css_to_rgb(manifest.colors.baseBackground)) }},
+      "ntp_background": {{ json.dumps(css_to_rgb(manifest.colors.baseBackground)) }},
+      "ntp_header": {{ json.dumps(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "ntp_text": {{ json.dumps(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "omnibox_background": {{ json.dumps(css_to_rgb(manifest.colors.secondaryBackground)) }},
+      "omnibox_text": {{ json.dumps(css_to_rgb(manifest.colors.accentColor)) }},
+      "tab_background_text": {{ json.dumps(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "tab_background_text_inactive": {{ json.dumps(css_to_rgb(manifest.colors.lineNumberColor)) }},
+      "tab_text": {{ json.dumps(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "theme_toolbar": {{ json.dumps(css_to_rgb(manifest.colors.highlightColor)) }},
+      "toolbar": {{ json.dumps(css_to_rgb(manifest.colors.textEditorBackground)) }}
     },
 
     "images": {
@@ -40,8 +40,8 @@
     },
 
     "tints": {
-      "buttons": {{ hsl_array(manifest.colors.accentColor) }},
-      "frame": {{ hsl_array(manifest.colors.accentColor) }}
+      "buttons": {{ json.dumps(css_to_hsl(manifest.colors.accentColor)) }},
+      "frame": {{ json.dumps(css_to_hsl(manifest.colors.accentColor)) }}
     }
   }
 }
