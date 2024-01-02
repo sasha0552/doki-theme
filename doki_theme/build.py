@@ -2,15 +2,17 @@
 
 from argparse import ArgumentParser
 from json import load
-from re import compile
-from typing import List, Tuple
+from os import makedirs, path
+from re import sub
+from sys import stderr
+from typing import Dict
 from zipfile import ZipFile
 
-from utils.doki.archive import copy_text_to_archive, copy_bytes_to_archive, render_svg_to_archive
+from utils.doki.archive import copy_binary_to_archive, copy_bytes_to_archive, copy_text_to_archive, render_svg_to_archive
 from utils.doki.image import build_inactive_tab_image, build_active_tab_image
 from utils.color import shade_css_color
 
-def build_base(replacements: List[Tuple[str, str]], output_path: str) -> None:
+def build_base(replacements: Dict[str, str], output_path: str, *, background: str, theme_name: str) -> None:
   with ZipFile(output_path, "w") as archive:
     # Copy files
     copy_text_to_archive(archive, "template/doki_theme_base/css/scrollbar.css", "css/scrollbar.css", replacements=replacements)
@@ -20,14 +22,18 @@ def build_base(replacements: List[Tuple[str, str]], output_path: str) -> None:
     copy_text_to_archive(archive, "template/doki_theme_base/manifest.json", "manifest.json", replacements=replacements)
 
     # Copy background
-    # TODO
+    if background is not None and theme_name is not None:
+      if path.exists(background):
+        copy_binary_to_archive(archive, background, f"images/backgrounds/{theme_name}.png")
+      else:
+        print(f"Background {background} is not exists!", file=stderr)
 
     # Render icon
     render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@16.png", replacements=replacements, size=16)
     render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
     render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
 
-def build_chrome(replacements: List[Tuple[str, str]], output_path: str) -> None:
+def build_chrome(replacements: Dict[str, str], output_path: str) -> None:
   with ZipFile(output_path, "w") as archive:
     # Copy files
     copy_text_to_archive(archive, "template/doki_theme_chrome/manifest.json", "manifest.json", replacements=replacements)
@@ -41,7 +47,7 @@ def build_chrome(replacements: List[Tuple[str, str]], output_path: str) -> None:
     render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
     render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
 
-def build_firefox(replacements: List[Tuple[str, str]], output_path: str) -> None:
+def build_firefox(replacements: Dict[str, str], output_path: str) -> None:
   with ZipFile(output_path, "w") as archive:
     # Copy files
     copy_text_to_archive(archive, "template/doki_theme_firefox/manifest.json", "manifest.json", replacements=replacements)
@@ -51,42 +57,64 @@ def build_firefox(replacements: List[Tuple[str, str]], output_path: str) -> None
     render_svg_to_archive(archive, "template/doki_theme_firefox/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
     render_svg_to_archive(archive, "template/doki_theme_firefox/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
 
+def build(manifest: str, type: str, output: str):
+  # Read manifest as json
+  with open(manifest, "r") as file:
+    manifest = load(file)
+
+  # Create replacements dictionary
+  replacements = {}
+
+  # Add every color as replacement source
+  for key, value in manifest["colors"].items():
+    replacements[key] = value
+
+  # Add shaded accent color, if accent color is present
+  if "accentColor" in manifest["colors"]:
+    replacements["_accentColorShade"] = shade_css_color(manifest["colors"]["accentColor"], -0.01)
+
+  # Add default contrast color, if not present
+  if "iconContrastColor" not in manifest["colors"]:
+    replacements["iconContrastColor"] = "#fff"
+
+  # Theme name
+  theme_name = manifest["displayName"].lower() + "_" + ("dark" if manifest["dark"] else "light")
+
+  # Remove invalid symbols
+  theme_name = sub(r"[^a-z0-9_]", "", theme_name)
+
+  # Background name
+  background_name = manifest["stickers"]["default"]["name"][:-4]
+
+  # Output path
+  output_path = path.join(output, f"doki_theme_{theme_name}_{type}.zip")
+
+  # Background path
+  background_path = path.join("upstream", "doki-theme-assets", "backgrounds", f"{background_name}.png")
+
+  # Create output directory
+  makedirs(output, exist_ok=True)
+
+  # Build theme based on type
+  if type == "base":
+    build_base(replacements, output_path, background=background_path, theme_name=background_name)
+  elif type == "chrome":
+    build_chrome(replacements, output_path)
+  elif type == "firefox":
+    build_firefox(replacements, output_path)
+
 def main():
   # Argument parser setup
   parser = ArgumentParser()
-  parser.add_argument("-m", "--manifest", type=str, required=True, help="theme defination")
+  parser.add_argument("-m", "--manifest", type=str, required=True, help="theme definition")
   parser.add_argument("-t", "--type", choices=["base", "chrome", "firefox"], required=True, help="output type")
-  parser.add_argument("-o", "--output", type=str, required=True, help="output path")
+  parser.add_argument("-o", "--output", type=str, default="out", help="output directory")
 
   # Command line arguments
   args = parser.parse_args()
 
-  # Read manifest as json
-  with open(args.manifest, "r") as file:
-    manifest = load(file)
-
-  # Create replacements array
-  replacements = []
-
-  # Add every color as replacement source
-  for key, value in manifest["colors"].items():
-    replacements.append((compile(f"&{key}&"), value))
-
-  # Add shaded accent color, if accent color is present
-  if "accentColor" in manifest["colors"]:
-    replacements.append((r"&_accentColorShade&", shade_css_color(manifest["colors"]["accentColor"], -0.01)))
-
-  # Add default contrast color, if not present
-  if "iconContrastColor" not in manifest["colors"]:
-    replacements.append((r"&iconContrastColor&", "#fff"))
-
-  # Build theme based on type
-  if args.type == "base":
-    build_base(replacements, args.output)
-  elif args.type == "chrome":
-    build_chrome(replacements, args.output)
-  elif args.type == "firefox":
-    build_firefox(replacements, args.output)
+  # Build theme
+  build(args.manifest, args.type, args.output)
 
 if __name__ == "__main__":
   main()
