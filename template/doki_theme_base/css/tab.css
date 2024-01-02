@@ -12,5 +12,5 @@ body {
   height: 100%;
   background-size: cover;
   background-position: right center;
-  background-image: url("/images/backgrounds/&_themeName&.png");
+  background-image: url("/images/backgrounds/&_backgroundName&.png");
 }

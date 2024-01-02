@@ -95,6 +95,9 @@ def build(manifest: str, type: str, output: str):
   # Create output directory
   makedirs(output, exist_ok=True)
 
+  # Add background name to replacements
+  replacements["_backgroundName"] = background_name
+
   # Build theme based on type
   if type == "base":
     build_base(replacements, output_path, background=background_path, theme_name=background_name)
