@@ -46,7 +46,7 @@ def css_to_hsl(color: str) -> (float, float, float):
   """
 
   # Convert CSS to RGB first
-  (r, g, b) = css_to_rgb(value)
+  (r, g, b) = css_to_rgb(color)
 
   # Convert to hue, lightness, and saturation
   (h, l, s) = rgb_to_hls(r / 255, g / 255, b / 255); 

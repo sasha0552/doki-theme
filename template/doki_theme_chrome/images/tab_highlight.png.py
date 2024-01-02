@@ -1,10 +1,10 @@
 from io import BytesIO
 from PIL import Image
 
-def create() -> bytes:
+def render() -> bytes:
   # Convert CSS colors to RGB
-  (hr, hg, hb) = css_to_rgb(manifest.colors.highlight_color)
-  (ar, ag, ab) = css_to_rgb(manifest.colors.accent_color)
+  (hr, hg, hb) = css_to_rgb(manifest["colors"]["highlightColor"])
+  (ar, ag, ab) = css_to_rgb(manifest["colors"]["accentColor"])
 
   # Create a new RGBA image
   image = Image.new("RGBA", (300, 120))
