@@ -1,5 +1,5 @@
 :root {
-  scrollbar-color: &accentColor& rgba(0, 0, 0, 0) !important;
+  scrollbar-color: {{ manifest.colors.accentColor }} rgba(0, 0, 0, 0) !important;
   scrollbar-width: thin !important;
 }
 
@@ -12,5 +12,5 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: &accentColor&;
+  background-color: {{ manifest.colors.accentColor }};
 }

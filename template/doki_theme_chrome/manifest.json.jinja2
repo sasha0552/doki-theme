@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Doki Theme",
+  "version": "1.0.0",
+
+  "icons": {
+    "16": "images/doki-theme-logo@16.png",
+    "32": "images/doki-theme-logo@32.png",
+    "64": "images/doki-theme-logo@64.png"
+  },
+
+  "theme": {
+    "colors": {
+      "bookmark_text": {{ jsonify(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "button_background": {{ jsonify(css_to_rgb(manifest.colors.buttonColor)) }},
+      "frame": {{ jsonify(css_to_rgb(manifest.colors.baseBackground)) }},
+      "frame_inactive": {{ jsonify(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "frame_incognito": {{ jsonify(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "frame_incognito_inactive": {{ jsonify(css_to_rgb(manifest.colors.baseBackground)) }},
+      "ntp_background": {{ jsonify(css_to_rgb(manifest.colors.baseBackground)) }},
+      "ntp_header": {{ jsonify(css_to_rgb(manifest.colors.textEditorBackground)) }},
+      "ntp_text": {{ jsonify(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "omnibox_background": {{ jsonify(css_to_rgb(manifest.colors.secondaryBackground)) }},
+      "omnibox_text": {{ jsonify(css_to_rgb(manifest.colors.accentColor)) }},
+      "tab_background_text": {{ jsonify(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "tab_background_text_inactive": {{ jsonify(css_to_rgb(manifest.colors.lineNumberColor)) }},
+      "tab_text": {{ jsonify(css_to_rgb(manifest.colors.foregroundColor)) }},
+      "theme_toolbar": {{ jsonify(css_to_rgb(manifest.colors.highlightColor)) }},
+      "toolbar": {{ jsonify(css_to_rgb(manifest.colors.textEditorBackground)) }}
+    },
+
+    "images": {
+      "theme_tab_background": "images/tab_inactive.png",
+      "theme_toolbar": "images/tab_highlight.png"
+    },
+
+    "properties": {
+      "ntp_background_alignment": "center",
+      "ntp_logo_alternate": 0
+    },
+
+    "tints": {
+      "buttons": {{ jsonify(css_to_hsl(manifest.colors.accentColor)) }},
+      "frame": {{ jsonify(css_to_hsl(manifest.colors.accentColor)) }}
+    }
+  }
+}

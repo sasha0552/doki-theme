@@ -1,134 +1,125 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
-from colorsys import rgb_to_hls
-from json import load
-from os import makedirs, path
-from re import sub
-from sys import stderr
-from typing import Dict
-from zipfile import ZipFile
+import argparse
+import cairosvg
+import glob
+import importlib.util
+import jinja2
+import json
+import os
+import re
+import shutil
+import tempfile
+import typing
 
-from utils.doki.archive import copy_binary_to_archive, copy_bytes_to_archive, copy_text_to_archive, render_svg_to_archive
-from utils.doki.image import build_inactive_tab_image, build_active_tab_image
-from utils.color import css_to_rgb, shade_css_color
+from utils.color import css_to_rgb, css_to_hsl, shade_css_color
+from utils.json import jsonify
 
-def build_base(replacements: Dict[str, str], output_path: str, *, background: str, theme_name: str) -> None:
-  with ZipFile(output_path, "w") as archive:
-    # Copy files
-    copy_text_to_archive(archive, "template/doki_theme_base/css/scrollbar.css", "css/scrollbar.css", replacements=replacements)
-    copy_text_to_archive(archive, "template/doki_theme_base/css/selection.css", "css/selection.css", replacements=replacements)
-    copy_text_to_archive(archive, "template/doki_theme_base/css/tab.css", "css/tab.css", replacements=replacements)
-    copy_text_to_archive(archive, "template/doki_theme_base/html/tab.html", "html/tab.html", replacements=replacements)
-    copy_text_to_archive(archive, "template/doki_theme_base/manifest.json", "manifest.json", replacements=replacements)
+def render_binary(path: str, **options: typing.Dict[str, typing.Any]) -> None:
+  if path.endswith(".py"):
+    # Create module spec
+    spec = importlib.util.spec_from_file_location("temporary", path)
 
-    # Copy background
-    if background is not None and theme_name is not None:
-      if path.exists(background):
-        copy_binary_to_archive(archive, background, f"images/backgrounds/{theme_name}.png")
-      else:
-        print(f"Background {background} is not exists!", file=stderr)
+    # Load the module
+    module = importlib.util.module_from_spec(spec)
 
-    # Render icon
-    render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@16.png", replacements=replacements, size=16)
-    render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
-    render_svg_to_archive(archive, "template/doki_theme_base/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
+    # Execute module
+    spec.loader.exec_module(module)
 
-def build_chrome(replacements: Dict[str, str], output_path: str) -> None:
-  with ZipFile(output_path, "w") as archive:
-    # Copy files
-    copy_text_to_archive(archive, "template/doki_theme_chrome/manifest.json", "manifest.json", replacements=replacements)
+    # Populate global variables
+    for (key, value) in options.items():
+      module.__dict__[key] = value
 
-    # Render tab images
-    copy_bytes_to_archive(archive, build_active_tab_image(replacements["highlightColor"], replacements["accentColor"]), "images/tab_highlight.png")
-    copy_bytes_to_archive(archive, build_inactive_tab_image(replacements["baseBackground"]), "images/tab_inactive.png")
+    # Call the render function
+    rendered = module.render()
 
-    # Render icon
-    render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@16.png", replacements=replacements, size=16)
-    render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
-    render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
+    # Write the resulting bytes
+    with open(path[:-3], "wb") as file:
+      file.write(rendered)
 
-def build_firefox(replacements: Dict[str, str], output_path: str) -> None:
-  with ZipFile(output_path, "w") as archive:
-    # Copy files
-    copy_text_to_archive(archive, "template/doki_theme_firefox/manifest.json", "manifest.json", replacements=replacements)
+def render_jinja2(path: str, **options: typing.Dict[str, typing.Any]) -> None:
+  if path.endswith(".jinja2"):
+    # Read input file
+    with open(path, "r") as file:
+      template = jinja2.Template(file.read())
 
-    # Render icon
-    render_svg_to_archive(archive, "template/doki_theme_firefox/images/icon.svg", "images/doki-theme-logo@16.png", replacements=replacements, size=16)
-    render_svg_to_archive(archive, "template/doki_theme_firefox/images/icon.svg", "images/doki-theme-logo@32.png", replacements=replacements, size=32)
-    render_svg_to_archive(archive, "template/doki_theme_firefox/images/icon.svg", "images/doki-theme-logo@64.png", replacements=replacements, size=64)
+    # Render template
+    rendered = template.render(**options)
 
-def build(manifest: str, type: str, output: str):
-  # Read manifest as json
-  with open(manifest, "r") as file:
-    manifest = load(file)
+    # Write output file
+    with open(path[:-7], "w") as file:
+      file.write(rendered)
 
-  # Create replacements dictionary
-  replacements = {}
+def render_svg(path: str, *, sizes: typing.List[int] = [ 16, 32, 64 ]) -> None:
+  if path.endswith(".svg"):
+    for size in sizes:
+      # Create new path like filename@16.png
+      new_path = f"{path[:-4]}@{size}.png"
 
-  # Add every color as replacement source
-  for key, value in manifest["colors"].items():
-    replacements[key] = value
+      # Render svg
+      cairosvg.svg2png(url=path, output_width=size, output_height=size, write_to=new_path)
 
-  # Same, but rgb variant instead of css
-  for key, value in manifest["colors"].items():
-    # Extract red, green, and blue
-    (r, g, b) = css_to_rgb(value)
+def build(source_path: str, target_path: str, manifest_path: str) -> None:
+  with open(manifest_path, "r") as file:
+    manifest = json.load(file)
 
-    # Assign replacement
-    replacements["_rgb_" + key] = f"[{r}, {g}, {b}]"
+  with tempfile.TemporaryDirectory() as tmp_dir:
+    # Remove temporary directory
+    shutil.rmtree(tmp_dir)
 
-  # Same, but hsl variant instead of css
-  for key, value in manifest["colors"].items():
-    # Extract red, green, and blue
-    (r, g, b) = css_to_rgb(value)
+    # Copy template directory
+    shutil.copytree(source_path, tmp_dir)
 
-    # Convert to hue, lightness, and saturation
-    (h, l, s) = rgb_to_hls(r / 255, g / 255, b / 255); 
+    # Render binary files
+    for path in glob.glob(os.path.join(tmp_dir, "**", "*.py"), recursive=True):
+      # Render binary
+      render_binary(path, css_to_rgb=css_to_rgb, css_to_hsl=css_to_hsl, jsonify=jsonify, manifest=manifest, shade_css_color=shade_css_color)
 
-    # Assign replacement
-    replacements["_hsl_" + key] = f"[{h}, 1, {l}]"
+      # Remove source file
+      os.remove(path)
 
-  # Add shaded accent color, if accent color is present
-  if "accentColor" in manifest["colors"]:
-    replacements["_accentColorShade"] = shade_css_color(manifest["colors"]["accentColor"], -0.01)
+    # Render template files
+    for path in glob.glob(os.path.join(tmp_dir, "**", "*.jinja2"), recursive=True):
+      # Render template
+      render_jinja2(path, css_to_rgb=css_to_rgb, css_to_hsl=css_to_hsl, jsonify=jsonify, manifest=manifest, shade_css_color=shade_css_color)
 
-  # Add default contrast color, if not present
-  if "iconContrastColor" not in manifest["colors"]:
-    replacements["iconContrastColor"] = "#fff"
+      # Remove source file
+      os.remove(path)
 
-  # Theme name
-  theme_name = manifest["displayName"].lower() + "_" + ("dark" if manifest["dark"] else "light")
+    # Render svg files
+    for path in glob.glob(os.path.join(tmp_dir, "**", "*.svg"), recursive=True):
+      # Render svg
+      render_svg(path)
 
-  # Remove invalid symbols
-  theme_name = sub(r"[^a-z0-9_]", "", theme_name)
+      # Remove source file
+      os.remove(path)
 
-  # Background name
-  background_name = manifest["stickers"]["default"]["name"][:-4]
+    # Remove __pycache__ directories
+    for path in glob.glob(os.path.join(tmp_dir, "**", "__pycache__"), recursive=True):
+      # Remove directory
+      shutil.rmtree(path)
 
-  # Output path
-  output_path = path.join(output, f"doki_theme_{theme_name}_{type}.zip")
+    # Theme name
+    theme_name = manifest["displayName"].lower() + "_" + ("dark" if manifest["dark"] else "light")
 
-  # Background path
-  background_path = path.join("upstream", "doki-theme-assets", "backgrounds", f"{background_name}.png")
+    # Theme type
+    theme_type = ("base" if source_path.endswith("doki_theme_base") else
+                  "chrome" if source_path.endswith("doki_theme_chrome") else
+                  "firefox" if source_path.endswith("doki_theme_firefox") else
+                  "unknown")
 
-  # Create output directory
-  makedirs(output, exist_ok=True)
+    # Remove invalid symbols
+    theme_name = re.sub(r"[^a-z0-9_]", "", theme_name)
 
-  # Add background name to replacements
-  replacements["_backgroundName"] = background_name
+    # Create output path
+    output_path = os.path.join(target_path, f"doki_theme_{theme_name}_{theme_type}")
 
-  # Build theme based on type
-  if type == "base":
-    build_base(replacements, output_path, background=background_path, theme_name=background_name)
-  elif type == "chrome":
-    build_chrome(replacements, output_path)
-  elif type == "firefox":
-    build_firefox(replacements, output_path)
+    # Create archive
+    shutil.make_archive(output_path, "zip", tmp_dir)
 
 def main():
   # Argument parser setup
-  parser = ArgumentParser()
+  parser = argparse.ArgumentParser()
   parser.add_argument("-m", "--manifest", type=str, required=True, help="theme definition")
   parser.add_argument("-t", "--type", choices=["base", "chrome", "firefox"], required=True, help="output type")
   parser.add_argument("-o", "--output", type=str, default="out", help="output directory")
@@ -136,8 +127,14 @@ def main():
   # Command line arguments
   args = parser.parse_args()
 
+  # Get template directory
+  template = (os.path.join("template", "doki_theme_base") if args.type == "base" else
+              os.path.join("template", "doki_theme_chrome") if args.type == "chrome" else
+              os.path.join("template", "doki_theme_firefox") if args.type == "firefox" else
+              os.path.join("template", "invalid"))
+
   # Build theme
-  build(args.manifest, args.type, args.output)
+  build(template, args.output, args.manifest)
 
 if __name__ == "__main__":
   main()
