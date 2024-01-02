@@ -9,17 +9,17 @@ def build_active_tab_image(highlight_color, accent_color):
   (ar, ag, ab) = css_to_rgb(accent_color)
 
   # Create a new RGBA image
-  image = Image.new("RGBA", (300, 50))
+  image = Image.new("RGBA", (300, 120))
 
-  # Fill the top 31 rows with the highlight color
-  for i in range(31):
+  # Fill the top 48 rows with the highlight color
+  for i in range(48):
     for j in range(300):
       image.putpixel((j, i), (hr, hg, hb, 255))
 
   # Fill the bottom 2 rows with the accent color
   for i in range(2):
     for j in range(300):
-      image.putpixel((j, i + 31), (ar, ag, ab, 255))
+      image.putpixel((j, i + 48), (ar, ag, ab, 255))
 
   # Save the image to a bytes IO stream
   img_byte_arr = BytesIO()
@@ -33,10 +33,10 @@ def build_inactive_tab_image(highlight_color):
   (hr, hg, hb) = css_to_rgb(highlight_color)
 
   # Create a new RGBA image
-  image = Image.new("RGBA", (300, 50))
+  image = Image.new("RGBA", (300, 120))
 
-  # Fill the top 33 rows with the highlight color
-  for i in range(33):
+  # Fill the top 50 rows with the highlight color
+  for i in range(50):
     for j in range(300):
       image.putpixel((j, i), (hr, hg, hb, 255))
 

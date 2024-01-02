@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from colorsys import rgb_to_hls
 from json import load
 from os import makedirs, path
 from re import sub
@@ -39,8 +40,8 @@ def build_chrome(replacements: Dict[str, str], output_path: str) -> None:
     copy_text_to_archive(archive, "template/doki_theme_chrome/manifest.json", "manifest.json", replacements=replacements)
 
     # Render tab images
-    copy_bytes_to_archive(archive, build_active_tab_image(replacements["highlightColor"], replacements["accentColor"]), "images/tab_inactive.png")
-    copy_bytes_to_archive(archive, build_inactive_tab_image(replacements["baseBackground"]), "images/tab_highlight.png")
+    copy_bytes_to_archive(archive, build_active_tab_image(replacements["highlightColor"], replacements["accentColor"]), "images/tab_highlight.png")
+    copy_bytes_to_archive(archive, build_inactive_tab_image(replacements["baseBackground"]), "images/tab_inactive.png")
 
     # Render icon
     render_svg_to_archive(archive, "template/doki_theme_chrome/images/icon.svg", "images/doki-theme-logo@16.png", replacements=replacements, size=16)
@@ -76,6 +77,17 @@ def build(manifest: str, type: str, output: str):
 
     # Assign replacement
     replacements["_rgb_" + key] = f"[{r}, {g}, {b}]"
+
+  # Same, but hsl variant instead of css
+  for key, value in manifest["colors"].items():
+    # Extract red, green, and blue
+    (r, g, b) = css_to_rgb(value)
+
+    # Convert to hue, lightness, and saturation
+    (h, l, s) = rgb_to_hls(r / 255, g / 255, b / 255); 
+
+    # Assign replacement
+    replacements["_hsl_" + key] = f"[{h}, 1, {l}]"
 
   # Add shaded accent color, if accent color is present
   if "accentColor" in manifest["colors"]:

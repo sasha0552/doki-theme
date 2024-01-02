@@ -30,8 +30,6 @@
     },
 
     "images": {
-      "theme_ntp_background": "",
-      "theme_ntp_background_incognito": "",
       "theme_tab_background": "images/tab_inactive.png",
       "theme_toolbar": "images/tab_highlight.png"
     },
@@ -42,8 +40,8 @@
     },
 
     "tints": {
-      "buttons": &_rgb_accentColor&,
-      "frame": &_rgb_accentColor&
+      "buttons": &_hsl_accentColor&,
+      "frame": &_hsl_accentColor&
     }
   }
 }
