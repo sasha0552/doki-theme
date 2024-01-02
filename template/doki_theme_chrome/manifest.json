@@ -11,22 +11,22 @@
 
   "theme": {
     "colors": {
-      "bookmark_text": "&foregroundColor&",
-      "button_background": "&buttonColor&",
-      "frame": "&baseBackground&",
-      "frame_inactive": "&textEditorBackground&",
-      "frame_incognito": "&textEditorBackground&",
-      "frame_incognito_inactive": "&baseBackground&",
-      "ntp_background": "&baseBackground&",
-      "ntp_header": "&textEditorBackground&",
-      "ntp_text": "&foregroundColor&",
-      "omnibox_background": "&secondaryBackground&",
-      "omnibox_text": "&accentColor&",
-      "tab_background_text": "&foregroundColor&",
-      "tab_background_text_inactive": "&lineNumberColor&",
-      "tab_text": "&foregroundColor&",
-      "theme_toolbar": "&highlightColor&",
-      "toolbar": "&textEditorBackground&"
+      "bookmark_text": &_rgb_foregroundColor&,
+      "button_background": &_rgb_buttonColor&,
+      "frame": &_rgb_baseBackground&,
+      "frame_inactive": &_rgb_textEditorBackground&,
+      "frame_incognito": &_rgb_textEditorBackground&,
+      "frame_incognito_inactive": &_rgb_baseBackground&,
+      "ntp_background": &_rgb_baseBackground&,
+      "ntp_header": &_rgb_textEditorBackground&,
+      "ntp_text": &_rgb_foregroundColor&,
+      "omnibox_background": &_rgb_secondaryBackground&,
+      "omnibox_text": &_rgb_accentColor&,
+      "tab_background_text": &_rgb_foregroundColor&,
+      "tab_background_text_inactive": &_rgb_lineNumberColor&,
+      "tab_text": &_rgb_foregroundColor&,
+      "theme_toolbar": &_rgb_highlightColor&,
+      "toolbar": &_rgb_textEditorBackground&
     },
 
     "images": {
@@ -42,8 +42,8 @@
     },
 
     "tints": {
-      "buttons": "&accentColor&",
-      "frame": "&accentColor&"
+      "buttons": &_rgb_accentColor&,
+      "frame": &_rgb_accentColor&
     }
   }
 }

@@ -10,7 +10,7 @@ from zipfile import ZipFile
 
 from utils.doki.archive import copy_binary_to_archive, copy_bytes_to_archive, copy_text_to_archive, render_svg_to_archive
 from utils.doki.image import build_inactive_tab_image, build_active_tab_image
-from utils.color import shade_css_color
+from utils.color import css_to_rgb, shade_css_color
 
 def build_base(replacements: Dict[str, str], output_path: str, *, background: str, theme_name: str) -> None:
   with ZipFile(output_path, "w") as archive:
@@ -68,6 +68,14 @@ def build(manifest: str, type: str, output: str):
   # Add every color as replacement source
   for key, value in manifest["colors"].items():
     replacements[key] = value
+
+  # Same, but rgb variant instead of css
+  for key, value in manifest["colors"].items():
+    # Extract red, green, and blue
+    (r, g, b) = css_to_rgb(value)
+
+    # Assign replacement
+    replacements["_rgb_" + key] = f"[{r}, {g}, {b}]"
 
   # Add shaded accent color, if accent color is present
   if "accentColor" in manifest["colors"]:
